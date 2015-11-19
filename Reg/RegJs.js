@@ -27,5 +27,10 @@
         return bool(value, reg);
     };
 
+    //去除html元素
+    exports.NoHtml = function (html) {
+        return html.replace(/<\/?[^>]*>/g, '').replace(/[ | ]*\n/g, '\n').replace(/&nbsp;/ig, ''); //去除HTML tag,去除行尾空白,去掉&nbsp
+    };
+
     //#endregion
 });

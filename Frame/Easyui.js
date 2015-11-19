@@ -20,7 +20,7 @@ define(function (require, exports, module) {
                 title: subtitle,
                 content: exports.CreateFrame(url, id),
                 closable: closable == null ? false : closable,
-                icon: "tree-file"
+                icon: "tree-folder-open"
             });
         } else {
             $('#tabs').tabs('select', subtitle);
@@ -142,6 +142,21 @@ define(function (require, exports, module) {
 
     //#region 树节点(Tree)
 
+    //获取操作权限
+    exports.LoadOperate = function (selector) {
+        var iframeid = window.parent.$('#tabs').tabs('getSelected').find('iframe').attr("id");
+        $.ajax({
+            url: '/Ajax/GetOperate',
+            async: false,
+            data: { menuId: iframeid },
+            type: 'post',
+            complete: function (result) {
+                $(selector).append(result.responseText);
+                $.parser.parse($(selector));
+            }
+        });
+    };
+
     //加载树节点
     exports.LoadTree = function (selector, url, isChecked, isLines) {
         $(selector).tree({
@@ -150,6 +165,26 @@ define(function (require, exports, module) {
             animate: true,
             checkbox: isChecked === undefined ? false : isChecked,
             lines: isLines === undefined ? false : isLines
+        });
+    };
+
+    //加载菜单树节点
+    exports.LoadMenuTree = function (selector) {
+        $(selector).tree({
+            url: '/Ajax/GetTree?randId=' + Math.random(),
+            method: 'get',
+            animate: true,
+            onClick: function (node) {
+                //不是父节点
+                if (node.children == undefined) {
+                    var id, title, url, icon;
+                    id = node.id;
+                    title = node.text;
+                    url = node.url;
+                    icon = node.iconCls;
+                    exports.AddTabs(title, url, icon, true, id);
+                }
+            }
         });
     };
 
@@ -254,13 +289,14 @@ define(function (require, exports, module) {
     //#region 下拉框(Combobox)
 
     //下拉框
-    exports.LoadCombobox = function (selector, url, isEdit, panelHeight, selectFunc) {
+    exports.LoadCombobox = function (selector, url, isEdit, panelHeight, readOnly, selectFunc) {
         $(selector).combobox({
             url: url,
             valueField: 'id',
             textField: 'text',
             editable: isEdit === undefined ? false : isEdit,
             panelHeight: panelHeight === undefined ? 'auto' : panelHeight,
+            readonly: readOnly === undefined ? false : readOnly,
             onSelect: function (data) {
                 if (selectFunc != undefined) {
                     selectFunc(data);
